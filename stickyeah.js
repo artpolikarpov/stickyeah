@@ -27,7 +27,8 @@
 	var quirksFLAG = document.compatMode != 'CSS1Compat' && ieFLAG;
 	var stopFLAG = touchFLAG || ie6FLAG || quirksFLAG;
 
-	var $window = $(window);
+  var $document = $(document);
+  var $window = $(window);
 	var sticky = $();
 	var pushers = {};
 	var groups = {};
@@ -94,8 +95,11 @@
 				getPusherTop();
 				var stickyHeight = $stickyClone.height() + stickyTopNew*2;
 				var pushindDiff = scrollTop - (pusherTop - stickyHeight - Number($stickyPusher.attr('data-stickyeah-offset') || 0));
-				pushindDiff = pushindDiff > $sticky.data('stickyeah-offset') ? pushindDiff : $sticky.data('stickyeah-offset');
+				pushindDiff = Math.max(pushindDiff, $sticky.data('stickyeah-offset'));
 				stickyTopNew = stickyTopNew*2 - pushindDiff;
+        /*if ($stickyPusher.data('stickyeah-on') && stickyTopNew > 0) {
+          stickyTopNew = - stickyHeight;
+        }*/
 			}
 
 			//if ($stickyStopper && $stickyStopper.length) {
@@ -137,7 +141,7 @@
 
 		var activateClone = function(FLAG) {
 			if (FLAG != cloneActivatedFLAG) {
-				$sticky.stop().css({position: FLAG ? 'fixed' : originalStickyPosition, top: '', left: '', marginTop: '', marginLeft: '', width: ''})[FLAG ? 'addClass' : 'removeClass']($sticky.data('stickyeah-class'));
+				$sticky.stop().css({position: FLAG ? 'fixed' : originalStickyPosition, top: '', left: '', marginTop: '', marginLeft: '', width: ''})[FLAG ? 'addClass' : 'removeClass']($sticky.data('stickyeah-class')).data({'stickyeah-on': FLAG});
 				stickyTopNewLast = '';
 				$stickyClone[FLAG ? 'show' : 'hide']();
 				cloneActivatedFLAG = FLAG;
@@ -178,7 +182,8 @@
 			if (!$sticky.data('disabled')) {
 				//console.log('listenTop');
 				stickyTop = (cloneActivatedFLAG ? $stickyClone : $sticky).offset().top;
-				scrollTop = $window.scrollTop();
+				//scrollTop = $window.scrollTop();
+        scrollTop = Math.min($window.scrollTop(), $document.height() - $window.height());
 				scrollLeft = $window.scrollLeft();
 				//////console.log('stickyTop: '+stickyTop,'scrollTop: '+scrollTop);
 				activateClone(stickyTop - $sticky.data('stickyeah-offset') - stopperHeight <= scrollTop);
