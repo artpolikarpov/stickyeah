@@ -27,7 +27,8 @@
 	var quirksFLAG = document.compatMode != 'CSS1Compat' && ieFLAG;
 	var stopFLAG = touchFLAG || ie6FLAG || quirksFLAG;
 
-	var $window = $(window);
+  var $document = $(document);
+  var $window = $(window);
 	var sticky = $();
 	var pushers = {};
 	var groups = {};
@@ -50,7 +51,9 @@
 		}
     //console.log($stickyPusher);
     if (!$stickyPusher || !$stickyPusher.length) {
-      $stickyPusher = pushers.bottom;
+      $stickyPusher = $('<div></div>').css({height: 0, fontSize: 0, margin: 0, clear: 'both', float: 'none'}).appendTo('body');
+/*
+			console.log('$stickyPusher', $stickyPusher);*/
     }
 
 		var $stickyStopper, stopperHeight;
@@ -89,13 +92,16 @@
 			var stickyLeft = $stickyClone.offset().left - scrollLeft;
 			stickyTopNew = $sticky.data('stickyeah-offset');
 			var stickyWidth = $stickyClone.width();
-			
+
 			if ($stickyPusher && $stickyPusher.length) {
 				getPusherTop();
 				var stickyHeight = $stickyClone.height() + stickyTopNew*2;
-				var pushindDiff = scrollTop - (pusherTop - stickyHeight - Number($stickyPusher.attr('data-stickyeah-offset') || 0));
-				pushindDiff = pushindDiff > $sticky.data('stickyeah-offset') ? pushindDiff : $sticky.data('stickyeah-offset');
+				var pushindDiff = scrollTop - (pusherTop - stickyHeight /*- Number($stickyPusher.attr('data-stickyeah-offset') || 0)*/);
+				pushindDiff = Math.max(pushindDiff, $sticky.data('stickyeah-offset'));
 				stickyTopNew = stickyTopNew*2 - pushindDiff;
+        /*if ($stickyPusher.data('stickyeah-on') && stickyTopNew > 0) {
+          stickyTopNew = - stickyHeight;
+        }*/
 			}
 
 			//if ($stickyStopper && $stickyStopper.length) {
@@ -137,7 +143,7 @@
 
 		var activateClone = function(FLAG) {
 			if (FLAG != cloneActivatedFLAG) {
-				$sticky.stop().css({position: FLAG ? 'fixed' : originalStickyPosition, top: '', left: '', marginTop: '', marginLeft: '', width: ''})[FLAG ? 'addClass' : 'removeClass']($sticky.data('stickyeah-class'));
+				$sticky.stop().css({position: FLAG ? 'fixed' : originalStickyPosition, top: '', left: '', marginTop: '', marginLeft: '', width: ''})[FLAG ? 'addClass' : 'removeClass']($sticky.data('stickyeah-class')).data({'stickyeah-on': FLAG});
 				stickyTopNewLast = '';
 				$stickyClone[FLAG ? 'show' : 'hide']();
 				cloneActivatedFLAG = FLAG;
@@ -178,8 +184,9 @@
 			if (!$sticky.data('disabled')) {
 				//console.log('listenTop');
 				stickyTop = (cloneActivatedFLAG ? $stickyClone : $sticky).offset().top;
-				scrollTop = $window.scrollTop();
-				scrollLeft = $window.scrollLeft();
+				//scrollTop = $window.scrollTop();
+        scrollTop = Math.max(Math.min($window.scrollTop(), $document.height() - $window.height()), 0);
+				scrollLeft = Math.max(Math.min($window.scrollLeft(), $document.width() - $window.width()), 0);
 				//////console.log('stickyTop: '+stickyTop,'scrollTop: '+scrollTop);
 				activateClone(stickyTop - $sticky.data('stickyeah-offset') - stopperHeight <= scrollTop);
 			}
@@ -225,7 +232,7 @@
 				});
 
 
-		$sticky.trigger('stickyeah:reflow');
+
 	}
 
 	$.stickyeah = function(o) {
@@ -234,7 +241,9 @@
 		}, o);
 
 		if (!stopFLAG) {
-			var _sticky = $('.stickyeah')
+			sticky = $('.stickyeah');
+
+      sticky
 					.filter(function() {
 						return !$(this).data('initialized');
 					})
@@ -267,20 +276,18 @@
 					.each(function(i) {
 						stickyeah($(this), i, o);
 					});
-      sticky = sticky.add(_sticky);
-      //console.log('sticky', _sticky, sticky);
-			////console.log(pushers);
+
+      sticky.trigger('stickyeah:reflow');
 		}
 	}
 
 	$(function(){
-    pushers.bottom = $('<div></div>').css({height: 0, fontSize: 0, margin: 0, clear: 'both', float: 'none'}).appendTo('body');
 		$.stickyeah();
 	});
 
 
 	$window.bind('resize scroll', function(e){
 		//////console.log('resize or scroll');
-		sticky.trigger('stickyeah:reflow', e);
+    sticky.trigger('stickyeah:reflow', e);
 	});
 })(jQuery);
