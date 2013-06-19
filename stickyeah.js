@@ -21,11 +21,7 @@
 		console = {log: $.noop};
 	}*/
 
-	var touchFLAG = ('ontouchstart' in document);
-	var ieFLAG = $.browser.msie;
-	var ie6FLAG = $.browser.version == '6.0' && ieFLAG;
-	var quirksFLAG = document.compatMode != 'CSS1Compat' && ieFLAG;
-	var stopFLAG = touchFLAG || ie6FLAG || quirksFLAG;
+	var stopFLAG = ('ontouchstart' in document) || document.compatMode != 'CSS1Compat' || typeof document.body.style.maxHeight == 'undefined';
 
   var $document = $(document);
   var $window = $(window);
